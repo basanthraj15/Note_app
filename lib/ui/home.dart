@@ -1,15 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:note_app/services/database_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Function(bool) onThemeChanged;
+
+  HomeScreen({super.key, required this.onThemeChanged});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool _isDarkMode = false;
+
+  Future<void> _loadThemePreferences() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    setState(() {
+      _isDarkMode = pref.getBool('isDarkMode') ?? false;
+    });
+  }
+
+  //toggle theme
+  void _toggleTheme(bool value) {
+    setState(() {
+      _isDarkMode = value;
+      widget.onThemeChanged(_isDarkMode);
+    });
+  }
+
   final TextEditingController _noteTitleController = TextEditingController();
   final TextEditingController _noteDescriptionController =
       TextEditingController();
@@ -211,6 +231,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         actions: [
+          Transform.scale(
+            scale: 0.7,
+            child: Switch(
+                value: _isDarkMode,
+                onChanged: (value) {
+                  _toggleTheme(value);
+                }),
+          ),
           Tooltip(
             message: "Delete all Notes",
             child: IconButton(
