@@ -6,15 +6,13 @@ class QueryHelper {
 
   static Future<void> createTable(sql.Database database) async {
     await database.execute("""
-CREATE TABLE note(
-id INTEGER PRIMARYKEY AUTOINCREMENT NOT NULL,
-title TEXT,
-description TEXT,
-time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
+CREATE TABLE notes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  title TEXT,
+  description TEXT,
+  time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 )
-
- """);
+""");
   }
 
 //create db
@@ -31,7 +29,7 @@ time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   static Future<int> createNote(String title, String? description) async {
     final db = await QueryHelper.db();
     final dataNote = {'title': title, 'description': description};
-    final id = await db.insert('note', dataNote,
+    final id = await db.insert('notes', dataNote,
         conflictAlgorithm: sql.ConflictAlgorithm.replace);
     return id;
   }
@@ -39,13 +37,13 @@ time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   //get all notes
   static Future<List<Map<String, dynamic>>> getAllNotes() async {
     final db = await QueryHelper.db();
-    return db.query('note', orderBy: 'id');
+    return db.query('notes', orderBy: 'id');
   }
 
   //get single note
   static Future<List<Map<String, dynamic>>> getNote(int id) async {
     final db = await QueryHelper.db();
-    return db.query('note', where: "id=?", whereArgs: [id], limit: 1);
+    return db.query('notes', where: "id=?", whereArgs: [id], limit: 1);
   }
 
   //update note
@@ -59,7 +57,7 @@ time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       'time': DateTime.now().toString()
     };
     final result =
-        await db.update('note', dataNote, where: "id=?", whereArgs: [id]);
+        await db.update('notes', dataNote, where: "id=?", whereArgs: [id]);
     return result;
   }
 
@@ -67,7 +65,7 @@ time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   static Future<void> deleteNote(int id) async {
     final db = await QueryHelper.db();
     try {
-      await db.delete('note', where: "id=?", whereArgs: [id]);
+      await db.delete('notes', where: "id=?", whereArgs: [id]);
     } catch (e) {
       e.toString();
     }
@@ -78,7 +76,7 @@ time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   static Future<void> deleteAllNotes() async {
     final db = await QueryHelper.db();
     try {
-      await db.delete('note');
+      await db.delete('notes');
     } catch (e) {
       print(e.toString());
     }
