@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:note_app/services/database_helper.dart';
 
@@ -36,80 +37,117 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _addNote() async {
     await QueryHelper.createNote(
         _noteTitleController.text, _noteDescriptionController.text);
-    print("Note added");
+    print("Note added successfully!");
     _reloadNotes(); // to reload after adding
   }
 
+//update notes
+
+  Future<void> _updateNote(int id) async {
+    await QueryHelper.updateNote(
+        id, _noteTitleController.text, _noteDescriptionController.text);
+    _reloadNotes();
+  }
+
   void showBottomSheetContent(int? id) async {
-    _noteTitleController.clear();
-    _noteDescriptionController.clear();
+    if (id != null) {
+      final currentNote = _allNotes.firstWhere(
+        (element) => element['id'] == id,
+        orElse: () => {},
+      );
+
+      if (currentNote.isNotEmpty) {
+        _noteTitleController.text = currentNote['title'];
+        _noteDescriptionController.text = currentNote['description'];
+      } else {
+        print("Note with ID $id not found.");
+        _noteTitleController.text = "";
+        _noteDescriptionController.text = "";
+      }
+    } else {
+      _noteTitleController.text = "";
+      _noteDescriptionController.text = "";
+    }
+
     showModalBottomSheet(
-        elevation: 2.0,
-        isScrollControlled: true,
-        context: context,
-        builder: (_) => SafeArea(
-              child: SingleChildScrollView(
+      elevation: 2.0,
+      isScrollControlled: true,
+      context: context,
+      builder: (_) => SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                padding: EdgeInsets.only(
+                  top: 15,
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                  left: 15,
+                  right: 15,
+                ),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Container(
-                      padding: EdgeInsets.only(
-                          top: 15,
-                          bottom: MediaQuery.of(context).viewInsets.bottom,
-                          left: 15,
-                          right: 15),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          TextField(
-                            controller: _noteTitleController,
-                            decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                hintText: "Note Title"),
-                          ),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          TextField(
-                            controller: _noteDescriptionController,
-                            decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                hintText: "Description"),
-                            maxLines: 5,
-                          ),
-                          SizedBox(
-                            height: 20,
-                          ),
-                          Center(
-                            child: OutlinedButton(
-                                onPressed: () async {
-                                  _addNote();
-                                  Navigator.of(context).pop();
-                                },
-                                child: Text(
-                                  "Add Note",
-                                  style: TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w300),
-                                )),
-                          ),
-                          SizedBox(
-                            height: 20,
-                          ),
-                        ],
+                    TextField(
+                      controller: _noteTitleController,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: "Note Title",
                       ),
-                    )
+                    ),
+                    SizedBox(height: 10),
+                    TextField(
+                      controller: _noteDescriptionController,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: "Description",
+                      ),
+                      maxLines: 5,
+                    ),
+                    SizedBox(height: 20),
+                    Center(
+                      child: OutlinedButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(
+                              const Color.fromARGB(255, 47, 6, 54)),
+                          foregroundColor:
+                              MaterialStateProperty.all(Colors.white),
+                        ),
+                        onPressed: () async {
+                          if (id == null) {
+                            await _addNote();
+                          } else {
+                            await _updateNote(id);
+                          }
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          id == null ? "Add Note" : "Update Note",
+                          style: TextStyle(
+                              fontSize: 17, fontWeight: FontWeight.w300),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
                   ],
                 ),
               ),
-            ));
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Notes"),
+        title: Text(
+          "NOTE APP",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
       ),
       body: SafeArea(
           child: _isLoadingNote
@@ -119,6 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
               : ListView.builder(
                   itemCount: _allNotes.length,
                   itemBuilder: (context, index) => Card(
+                    elevation: 4.0,
                     margin: EdgeInsets.all(16),
                     child: ListTile(
                       title: Row(
@@ -134,8 +173,21 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           )),
                           Row(
-                              //add delete edit option
-                              ),
+                            //add delete edit option
+
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Tooltip(
+                                message: "Edit note",
+                                child: IconButton(
+                                    onPressed: () {
+                                      showBottomSheetContent(
+                                          _allNotes[index]['id']);
+                                    },
+                                    icon: Icon(Icons.edit)),
+                              )
+                            ],
+                          ),
                         ],
                       ),
                       subtitle: Text(
@@ -147,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 )),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showBottomSheetContent(0);
+          showBottomSheetContent(null);
         },
         child: Icon(Icons.add),
       ),
