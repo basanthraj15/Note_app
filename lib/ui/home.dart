@@ -310,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       subtitle: Text(
                         _allNotes[index]['description'],
                         style:
-                            TextStyle(fontSize: 20, fontFamily: 'IndieFlower'),
+                            TextStyle(fontSize: 20, fontFamily: 'DancingScript'),
                       ),
                     ),
                   ),
