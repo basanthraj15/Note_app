@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:note_app/services/database_helper.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -47,6 +47,68 @@ class _HomeScreenState extends State<HomeScreen> {
     await QueryHelper.updateNote(
         id, _noteTitleController.text, _noteDescriptionController.text);
     _reloadNotes();
+  }
+
+  //delete notes
+
+  void _deleteNote(int id) async {
+    await QueryHelper.deleteNote(id);
+    showSnackbar(context, "Note has been deleted Successfully",
+        const Color.fromARGB(255, 107, 29, 163));
+    _reloadNotes();
+  }
+
+  //delete all notes
+
+  void _deleteAllNotes() async {
+    final noteCount = await QueryHelper.getNoteCount();
+    if (noteCount > 0) {
+      await QueryHelper.deleteAllNotes();
+      _reloadNotes();
+      showSnackbar(context, "All notes Deleted!",
+          const Color.fromARGB(255, 107, 29, 163));
+    } else {
+      showSnackbar(context, "No notes to Delete!",
+          const Color.fromARGB(255, 107, 29, 163));
+    }
+  }
+
+//snackbar
+  void showSnackbar(BuildContext context, String message, Color color) {
+    final snackBar = SnackBar(
+      content: Text(message),
+      backgroundColor: color,
+      duration: Duration(seconds: 2),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void ShowDeleteAllPopup(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Delete all Notes!"),
+          content:
+              Text("Are you sure you want to delete all the existing notes?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("No"),
+            ),
+            TextButton(
+                onPressed: () {
+                  _deleteAllNotes();
+                  Navigator.of(context).pop();
+                },
+                child: Text("Yes", style: const TextStyle(color: Colors.red))),
+          ],
+        );
+      },
+    );
   }
 
   void showBottomSheetContent(int? id) async {
@@ -148,6 +210,27 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        actions: [
+          Tooltip(
+            message: "Delete all Notes",
+            child: IconButton(
+                onPressed: () {
+                  ShowDeleteAllPopup(context);
+                },
+                icon: Icon(Icons.delete_forever_outlined)),
+          ),
+          Tooltip(
+            message: "Exit App",
+            child: IconButton(
+                onPressed: () {
+                  _exitApp();
+                },
+                icon: Icon(
+                  Icons.exit_to_app_outlined,
+                  color: Colors.red,
+                )),
+          )
+        ],
       ),
       body: SafeArea(
           child: _isLoadingNote
@@ -185,7 +268,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                           _allNotes[index]['id']);
                                     },
                                     icon: Icon(Icons.edit)),
-                              )
+                              ),
+                              SizedBox(width: 5),
+                              IconButton(
+                                  onPressed: () {
+                                    _deleteNote(_allNotes[index]['id']);
+                                  },
+                                  icon: Icon(Icons.delete))
                             ],
                           ),
                         ],
@@ -204,5 +293,31 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Icon(Icons.add),
       ),
     );
+  }
+
+  void _exitApp() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Exit App"),
+            content: Text("Are you sure you want to exit the app?"),
+            actions: [
+              OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("No")),
+              OutlinedButton(
+                  onPressed: () {
+                    SystemNavigator.pop();
+                  },
+                  child: Text(
+                    "Yes",
+                    style: TextStyle(color: Colors.red),
+                  ))
+            ],
+          );
+        });
   }
 }
