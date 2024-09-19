@@ -86,10 +86,10 @@ class _HomeScreenState extends State<HomeScreen> {
       await QueryHelper.deleteAllNotes();
       _reloadNotes();
       showSnackbar(context, "All notes Deleted!",
-          const Color.fromARGB(255, 107, 29, 163));
+          _isDarkMode ? Colors.white : const Color.fromARGB(255, 107, 29, 163));
     } else {
       showSnackbar(context, "No notes to Delete!",
-          const Color.fromARGB(255, 107, 29, 163));
+          _isDarkMode ? Colors.white : const Color.fromARGB(255, 107, 29, 163));
     }
   }
 
@@ -309,7 +309,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       subtitle: Text(
                         _allNotes[index]['description'],
-                        style: TextStyle(fontSize: 20),
+                        style:
+                            TextStyle(fontSize: 20, fontFamily: 'IndieFlower'),
                       ),
                     ),
                   ),
